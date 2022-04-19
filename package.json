@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "@google-cloud/functions-framework": "^3.1.0",
+    "luxon": "^2.3.2",
+    "puppeteer": "^13.5.2"
+  },
+  "scripts": {
+    "start": "functions-framework --target=signUp",
+    "deploy": "gcloud --project=wodifunc functions deploy signUp --runtime nodejs16 --trigger-http --memory=1024MB --timeout=3m",
+    "describe": "gcloud --project=wodifunc functions describe signUp",
+    "fmt": "js-beautify -n -r -s 2 *.js"
+  },
+  "devDependencies": {
+    "js-beautify": "^1.14.3"
+  }
+}

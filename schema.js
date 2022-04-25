@@ -1,5 +1,7 @@
 // TODO:
-// - Move settings to pubsub with schema? easier to edit.
+// - Move settings to pubsub with schema? easier to edit but protocol buffers
+//   doesn't have union types (does protoc generate typescript yet?)
+
 /**
  * @typedef {'6:00 PM' | '7:00 PM'} BarbellCore
  * @typedef {'6:00 AM' | '7:00 AM' | '8:00 AM' | '12:00 PM' | '5:00 PM'} WODCore

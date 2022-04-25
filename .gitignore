@@ -1,3 +1,6 @@
+# DO not check in build products.
+build
+
 # Do not check in vendored dependencies.
 node_modules
 

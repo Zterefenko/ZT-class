@@ -5,12 +5,14 @@
     "puppeteer": "^13.5.2"
   },
   "scripts": {
-    "start": "functions-framework --target=signUp",
-    "deploy": "gcloud --project=wodifunc functions deploy signUp --runtime nodejs16 --trigger-http --memory=1024MB --timeout=3m",
+    "start": "tsc --noEmit && functions-framework --target=signUp",
+    "deploy": "tsc --noEmit && gcloud --project=wodifunc functions deploy signUp --runtime nodejs16 --trigger-http --memory=1024MB --timeout=3m",
     "describe": "gcloud --project=wodifunc functions describe signUp",
-    "fmt": "js-beautify -n -r -s 2 *.js"
+    "fmt": "js-beautify -n -r -s 2 *.js tsconfig.json"
   },
   "devDependencies": {
-    "js-beautify": "^1.14.3"
+    "@types/luxon": "^2.3.1",
+    "js-beautify": "^1.14.3",
+    "typescript": "^4.6.3"
   }
 }

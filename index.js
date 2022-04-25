@@ -1,11 +1,11 @@
 //@ts-check
 
-const config = require('./config')
-const preferences = require('./preferences')
 const functions = require('@google-cloud/functions-framework')
 const luxon = require('luxon');
+const preferences = require('./preferences')
 const process = require('process')
 const puppeteer = require('puppeteer')
+const schema = require('./schema')
 const timers = require('timers/promises');
 
 /**
@@ -33,7 +33,7 @@ const instrument = async (username, operation, promise) => {
 const wait = (duration) => timers.setTimeout(duration.milliseconds)
 
 /**
- * @param {config.settings} settings
+ * @param {schema.settings} settings
  */
 const signUp = async (settings) => {
   const isLocal = process.env.FUNCTION_TARGET === undefined
@@ -146,7 +146,7 @@ functions.http('signUp', async (req, res) => {
     await signUp(preferences.settings)
     res.contentType('text').status(200).send()
   } catch (e) {
-    res.contentType('text').status(500).send(e.toString())
+    res.contentType('text').status(500).send(JSON.stringify(e))
     throw e
   }
 })

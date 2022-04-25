@@ -77,8 +77,8 @@ const signUp = async (settings) => {
     ])
     while (true) {
       let signedUp = false
-      await Promise.all(Object.entries(classes).map(async ([program, days]) => {
-        // NB: Do this sequentially because we can't identify individual reservation responses.
+      // NB: Do this sequentially because we can't identify individual reservation responses.
+      for (const [program, days] of Object.entries(classes)) {
         for (const [day, time] of Object.entries(days)) {
           if (day.localeCompare(weekday, [], {
               sensitivity: 'base'
@@ -106,7 +106,7 @@ const signUp = async (settings) => {
             signedUp = true
           }
         }
-      }))
+      }
       if (isLocal || signedUp) {
         break
       }

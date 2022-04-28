@@ -1,5 +1,6 @@
 //@ts-check
 
+const assert = require('assert')
 const functions = require('@google-cloud/functions-framework')
 const luxon = require('luxon')
 const preferences = require('./preferences')
@@ -88,6 +89,7 @@ const signUp = async (settings) => {
         if (!text.includes('CalendarList.Reserve')) {
           return
         }
+        assert.notEqual(pending, 0)
         pending--
         console.log(`[CONT][${username}] page.on('response') pending=${pending}`)
         if (pending == 0) {
@@ -145,7 +147,9 @@ const signUp = async (settings) => {
         })),
       ])
     }
-    await instrument(username, 'page.on(response)', complete)
+    if (pending != 0) {
+      await instrument(username, 'page.on(response)', complete)
+    }
     await instrument(username, 'context.close', context.close())
   }))
   await instrument('global', 'browser.close', browser.close())

@@ -110,7 +110,7 @@ const signUp = async (settings) => {
           const elements = await instrument(username, `page.$x(${day}:${program}@${time})`, page.$x(xpath))
           // NB: Do this sequentially to avoid "node is not clickable" errors.
           for (const element of elements) {
-            await instrument(username, `(${day}:${program}@${time}).click()`, element.click(clickOptions))
+            await instrument(username, `(${day}:${program}@${time}).click()`, element.click())
             pending++
             signedUp = true
           }
@@ -132,7 +132,7 @@ const signUp = async (settings) => {
         await instrument(username, `wait(${interval.toString()})`, wait(interval.toDuration()))
       }
       await Promise.all([
-        instrument(username, 'page.click(reset)', page.click('[value="Reset"]', clickOptions)),
+        instrument(username, 'page.click(reset)', page.click('[value="Reset"]')),
         instrument(username, 'page.wait(Response)', page.waitForResponse(async (response) => {
           if (!response.url().startsWith('https://app.wodify.com/Schedule/CalendarListView.aspx')) {
             return false

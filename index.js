@@ -1,6 +1,5 @@
 //@ts-check
 
-const assert = require('assert')
 const functions = require('@google-cloud/functions-framework')
 const luxon = require('luxon')
 const preferences = require('./preferences')
@@ -76,7 +75,11 @@ const signUp = async (settings) => {
       instrument(username, 'page.wait(navigation)', page.waitForNavigation()),
       instrument(username, 'page.click(login)', page.click('#FormLogin button', clickOptions)),
     ])
-    let pending = 0;
+    /**
+     * @type number?
+     */
+    let pending = null;
+    const pendingOp = () => `[CONT][${username}] page.on('response') pending=${pending}`
     /**
      * @type Promise<void>
      */
@@ -89,16 +92,18 @@ const signUp = async (settings) => {
         if (!text.includes('CalendarList.Reserve')) {
           return
         }
-        assert.notEqual(pending, 0)
-        pending--
-        console.log(`[CONT][${username}] page.on('response') pending=${pending}`)
-        if (pending == 0) {
-          resolve()
+        if (pending === null || pending == 0) {
+          console.error(pendingOp())
+        } else {
+          pending--
+          console.log(pendingOp())
+          if (pending == 0) {
+            resolve()
+          }
         }
       })
     })
     while (true) {
-      let signedUp = false
       // NB: Do this sequentially because we can't identify individual reservation responses.
       for (const [program, days] of Object.entries(classes)) {
         for (const [day, time] of Object.entries(days)) {
@@ -113,12 +118,15 @@ const signUp = async (settings) => {
           // NB: Do this sequentially to avoid "node is not clickable" errors.
           for (const element of elements) {
             await instrument(username, `(${day}:${program}@${time}).click()`, element.click())
+            if (pending === null) {
+              pending = 0
+            }
             pending++
-            signedUp = true
+            console.log(pendingOp())
           }
         }
       }
-      if (isLocal || signedUp) {
+      if (isLocal || pending != 0) {
         break
       }
       const deadline = luxon.DateTime.fromObject({
@@ -147,7 +155,7 @@ const signUp = async (settings) => {
         })),
       ])
     }
-    if (pending != 0) {
+    if (pending !== null) {
       await instrument(username, 'page.on(response)', complete)
     }
     await instrument(username, 'context.close', context.close())

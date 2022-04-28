@@ -75,6 +75,26 @@ const signUp = async (settings) => {
       instrument(username, 'page.wait(navigation)', page.waitForNavigation()),
       instrument(username, 'page.click(login)', page.click('#FormLogin button', clickOptions)),
     ])
+    let pending = 0;
+    /**
+     * @type Promise<void>
+     */
+    const complete = new Promise((resolve) => {
+      page.on('response', async (response) => {
+        if (!response.url().startsWith('https://app.wodify.com/Schedule/CalendarListView.aspx')) {
+          return
+        }
+        const text = await response.text();
+        if (!text.includes('CalendarList.Reserve')) {
+          return
+        }
+        pending--
+        console.log(`[CONT][${username}] page.on('response') pending=${pending}`)
+        if (pending == 0) {
+          resolve()
+        }
+      })
+    })
     while (true) {
       let signedUp = false
       // NB: Do this sequentially because we can't identify individual reservation responses.
@@ -90,19 +110,8 @@ const signUp = async (settings) => {
           const elements = await instrument(username, `page.$x(${day}:${program}@${time})`, page.$x(xpath))
           // NB: Do this sequentially to avoid "node is not clickable" errors.
           for (const element of elements) {
-            await Promise.all([
-              instrument(username, `(${day}:${program}@${time}).click()`, element.click(clickOptions)),
-              instrument(username, 'page.wait(Response)', page.waitForResponse(async (response) => {
-                if (!response.url().startsWith('https://app.wodify.com/Schedule/CalendarListView.aspx')) {
-                  return false
-                }
-                const text = await response.text();
-                if (!text.includes('CalendarList.Reserve')) {
-                  return false
-                }
-                return true
-              })),
-            ])
+            await instrument(username, `(${day}:${program}@${time}).click()`, element.click(clickOptions))
+            pending++
             signedUp = true
           }
         }
@@ -136,6 +145,7 @@ const signUp = async (settings) => {
         })),
       ])
     }
+    await instrument(username, 'page.on(response)', complete)
     await instrument(username, 'context.close', context.close())
   }))
   await instrument('global', 'browser.close', browser.close())

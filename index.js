@@ -1,12 +1,12 @@
 //@ts-check
 
 const functions = require('@google-cloud/functions-framework')
-const luxon = require('luxon');
+const luxon = require('luxon')
 const preferences = require('./preferences')
 const process = require('process')
 const puppeteer = require('puppeteer')
 const schema = require('./schema')
-const timers = require('timers/promises');
+const timers = require('timers/promises')
 
 /**
  * @template T
@@ -86,7 +86,7 @@ const signUp = async (settings) => {
             console.log(`[${username}] skipping ${day} != ${weekday}`)
             continue
           }
-          const xpath = `//*[@onclick][descendant::*[contains(@class, "icon-calendar") and not(contains(@class, "disabled"))]][ancestor::tr[1][descendant::*[text() = "${program}"] and (preceding-sibling::tr[descendant::*[contains(text(), "DAY")]][1][descendant::*[text() = "${day}"]] and descendant::*[text() = "${time}"])]]`;
+          const xpath = `//*[@onclick][descendant::*[contains(@class, "icon-calendar") and not(contains(@class, "disabled"))]][ancestor::tr[1][descendant::*[text() = "${program}"] and (preceding-sibling::tr[descendant::*[contains(text(), "DAY")]][1][descendant::*[text() = "${day}"]] and descendant::*[text() = "${time}"])]]`
           const elements = await instrument(username, `page.$x(${day}:${program}@${time})`, page.$x(xpath))
           // NB: Do this sequentially to avoid "node is not clickable" errors.
           for (const element of elements) {
@@ -128,7 +128,7 @@ const signUp = async (settings) => {
           if (!response.url().startsWith('https://app.wodify.com/Schedule/CalendarListView.aspx')) {
             return false
           }
-          const text = await response.text();
+          const text = await response.text()
           if (!text.includes('CalendarList.Filter')) {
             return false
           }

@@ -126,7 +126,7 @@ const signUp = async (settings) => {
           }
         }
       }
-      if (isLocal || pending != 0) {
+      if (isLocal || pending !== null) {
         break
       }
       const deadline = luxon.DateTime.fromObject({

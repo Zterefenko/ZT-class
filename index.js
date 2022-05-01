@@ -105,12 +105,20 @@ const signUp = async (settings) => {
     })
     while (true) {
       // NB: Do this sequentially because we can't identify individual reservation responses.
-      for (const [program, days] of Object.entries(classes)) {
+      for (const [program, days] of Object.entries(classes).sort(([p1, d1], [p2, d2]) => {
+          const precedence = [
+            'WOD',
+            'Barbell Club',
+            'Bodybuilding',
+            "Competitor's Class",
+          ]
+          return precedence.indexOf(p1) - precedence.indexOf(p2)
+        })) {
         for (const [day, time] of Object.entries(days)) {
           if (day.localeCompare(weekday, [], {
               sensitivity: 'base'
             }) != 0) {
-            console.log(`[${username}] skipping ${day} != ${weekday}`)
+            console.log(`[${username}] skipping [${program}] ${day} != ${weekday}`)
             continue
           }
           const xpath = `//*[@onclick][descendant::*[contains(@class, "icon-calendar") and not(contains(@class, "disabled"))]][ancestor::tr[1][descendant::*[text() = "${program}"] and (preceding-sibling::tr[descendant::*[contains(text(), "DAY")]][1][descendant::*[text() = "${day}"]] and descendant::*[text() = "${time}"])]]`

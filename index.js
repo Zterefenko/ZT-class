@@ -141,7 +141,6 @@ const signUp = async (settings) => {
         hour: 13,
         minute: 59,
         second: 59,
-        millisecond: 500
       }, {
         zone
       })

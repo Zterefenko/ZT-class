@@ -75,10 +75,7 @@ const signUp = async (settings) => {
       instrument(username, 'page.wait(navigation)', page.waitForNavigation()),
       instrument(username, 'page.click(login)', page.click('#FormLogin button', clickOptions)),
     ])
-    /**
-     * @type number?
-     */
-    let pending = null;
+    let pending = 0;
     const pendingOp = () => `[CONT][${username}] page.on('response') pending=${pending}`
     /**
      * @type Promise<void>
@@ -92,7 +89,7 @@ const signUp = async (settings) => {
         if (!text.includes('CalendarList.Reserve')) {
           return
         }
-        if (pending === null || pending == 0) {
+        if (pending == 0) {
           console.error(pendingOp())
         } else {
           pending--
@@ -103,38 +100,64 @@ const signUp = async (settings) => {
         }
       })
     })
+    let requested = false;
     while (true) {
-      // NB: Do this sequentially because we can't identify individual reservation responses.
-      for (const [day, classes] of Object.entries(schedule)) {
-        if (day.localeCompare(weekday, [], {
-            sensitivity: 'base'
-          }) != 0) {
-          console.log(`[${username}] skipping ${day} != ${weekday}`)
-          continue
-        }
-        for (const [program, time] of Object.entries(classes).sort(([p1, t1], [p2, t2]) => {
-            const precedence = [
-              'WOD',
-              'Barbell Club',
-              'Bodybuilding',
-              "Competitor's Class",
-            ]
-            return precedence.indexOf(p1) - precedence.indexOf(p2)
-          })) {
+      await Promise.all(Object.entries(schedule).filter(([day, classes]) => day.localeCompare(weekday, [], {
+        sensitivity: 'base'
+      }) != 0).map(async ([day, classes]) => {
+        await Promise.all(Object.entries(classes).sort(([p1, t1], [p2, t2]) => {
+          const precedence = [
+            'WOD',
+            'Barbell Club',
+            'Bodybuilding',
+            "Competitor's Class",
+          ]
+          return precedence.indexOf(p1) - precedence.indexOf(p2)
+        }).map(async ([program, time]) => {
           const xpath = `//*[@onclick][descendant::*[contains(@class, "icon-calendar") and not(contains(@class, "disabled"))]][ancestor::tr[1][descendant::*[text() = "${program}"] and (preceding-sibling::tr[descendant::*[contains(text(), "DAY")]][1][descendant::*[text() = "${day}"]] and descendant::*[text() = "${time}"])]]`
-          const elements = await instrument(username, `page.$x(${day}:${program}@${time})`, page.$x(xpath))
-          // NB: Do this sequentially to avoid "node is not clickable" errors.
-          for (const element of elements) {
-            await instrument(username, `(${day}:${program}@${time}).click()`, element.click())
-            if (pending === null) {
-              pending = 0
+          const id = `${day}:${program}@${time}`
+          while (true) {
+            const elements = await instrument(username, `page.$x(${id})`, page.$x(xpath))
+            const count = (await Promise.all(elements.map(async (element) => {
+              try {
+                await instrument(username, `(${id}).click()`, (() => {
+                  if (isLocal) {
+                    // Fault injection for local testing.
+                    if (Math.random() < 0.8) {
+                      return Promise.reject(new Error('gotcha'))
+                    }
+                  }
+                  // Click without scrolling; ElementHandle.click scrolls the page before clicking.
+                  return element.evaluate((b) => {
+                    if (b instanceof HTMLElement) {
+                      return b.click()
+                    }
+                    throw new Error(`${b.className} is not an HTMLElement`)
+                  })
+                })())
+                return true
+              } catch (e) {
+                if (e instanceof Error) {
+                  console.error(`[${username}] (${id}).click(): ${e.message}`)
+                } else {
+                  throw e
+                }
+                return false
+              }
+            }))).filter((value) => value).length
+            if (count != 0) {
+              requested = true
+              pending += count
+              console.log(pendingOp())
             }
-            pending++
-            console.log(pendingOp())
+            if (count != elements.length) {
+              continue
+            }
+            break
           }
-        }
-      }
-      if (isLocal || pending !== null) {
+        }))
+      }))
+      if (isLocal || requested) {
         break
       }
       const deadline = luxon.DateTime.fromObject({
@@ -163,7 +186,7 @@ const signUp = async (settings) => {
         })),
       ])
     }
-    if (pending !== null) {
+    if (requested) {
       await instrument(username, 'page.on(response)', complete)
     }
     await instrument(username, 'context.close', context.close())

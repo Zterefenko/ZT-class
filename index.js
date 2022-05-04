@@ -54,7 +54,7 @@ const signUp = async (settings) => {
   await Promise.all(settings.map(async ({
     username,
     password,
-    classes
+    schedule,
   }) => {
     const context = await instrument(username, `browser.createContext(${username})`, browser.createIncognitoBrowserContext())
     const page = await instrument(username, 'context.newPage', context.newPage())
@@ -105,22 +105,22 @@ const signUp = async (settings) => {
     })
     while (true) {
       // NB: Do this sequentially because we can't identify individual reservation responses.
-      for (const [program, days] of Object.entries(classes).sort(([p1, d1], [p2, d2]) => {
-          const precedence = [
-            'WOD',
-            'Barbell Club',
-            'Bodybuilding',
-            "Competitor's Class",
-          ]
-          return precedence.indexOf(p1) - precedence.indexOf(p2)
-        })) {
-        for (const [day, time] of Object.entries(days)) {
-          if (day.localeCompare(weekday, [], {
-              sensitivity: 'base'
-            }) != 0) {
-            console.log(`[${username}] skipping [${program}] ${day} != ${weekday}`)
-            continue
-          }
+      for (const [day, classes] of Object.entries(schedule)) {
+        if (day.localeCompare(weekday, [], {
+            sensitivity: 'base'
+          }) != 0) {
+          console.log(`[${username}] skipping ${day} != ${weekday}`)
+          continue
+        }
+        for (const [program, time] of Object.entries(classes).sort(([p1, t1], [p2, t2]) => {
+            const precedence = [
+              'WOD',
+              'Barbell Club',
+              'Bodybuilding',
+              "Competitor's Class",
+            ]
+            return precedence.indexOf(p1) - precedence.indexOf(p2)
+          })) {
           const xpath = `//*[@onclick][descendant::*[contains(@class, "icon-calendar") and not(contains(@class, "disabled"))]][ancestor::tr[1][descendant::*[text() = "${program}"] and (preceding-sibling::tr[descendant::*[contains(text(), "DAY")]][1][descendant::*[text() = "${day}"]] and descendant::*[text() = "${time}"])]]`
           const elements = await instrument(username, `page.$x(${day}:${program}@${time})`, page.$x(xpath))
           // NB: Do this sequentially to avoid "node is not clickable" errors.

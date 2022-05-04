@@ -8,28 +8,34 @@
  * @typedef {{
  *   username: string,
  *   password: string,
- *   classes: {
- *     'Barbell Club'?: {
- *       MONDAY?: BarbellCore,
- *       THURSDAY?: BarbellCore,
- *       SATURDAY?: '12:30 PM',
+ *   schedule: {
+ *     MONDAY?: {
+ *       WOD?: '5:00 AM' | WODCore | '4:00 PM' | '8:00 PM',
+ *       'Barbell Club'?: BarbellCore,
  *     },
- *     Bodybuilding? : {
- *       TUESDAY?: '4:00 PM',
- *       SUNDAY?: '12:00 PM',
+ *     TUESDAY?: {
+ *       WOD?:'5:00 AM' | WODCore | BarbellCore | '8:00 PM',
+ *       Bodybuilding?: '4:00 PM',
  *     },
- *     "Competitor's Class"? : {
- *       SATURDAY: '8:30 AM'
+ *     WEDNESDAY?: {
+ *       WOD?: '5:00 AM' | WODCore | '4:00 PM' | BarbellCore | '8:00 PM',
  *     },
- *     WOD?: {
- *       MONDAY?: '5:00 AM' | WODCore | '4:00 PM' | '8:00 PM',
- *       TUESDAY?:'5:00 AM' | WODCore | BarbellCore | '8:00 PM',
- *       WEDNESDAY?: '5:00 AM' | WODCore | '4:00 PM' | BarbellCore | '8:00 PM',
- *       THURSDAY?: WODCore | '4:00 PM' | '8:00 PM',
- *       FRIDAY?: WODCore | '9:00 AM' | '4:00 PM' | BarbellCore,
- *       SATURDAY?: '9:30 AM' | '10:30 AM' | '11:30 AM',
+ *     THURSDAY?: {
+ *       WOD?: WODCore | '4:00 PM' | '8:00 PM',
+ *       'Barbell Club'?: BarbellCore,
  *     },
- *   }
+ *     FRIDAY?: {
+ *       WOD?: WODCore | '9:00 AM' | '4:00 PM' | BarbellCore,
+ *     },
+ *     SATURDAY?: {
+ *       "Competitor's Class"?: '8:30 AM',
+ *       WOD?: '9:30 AM' | '10:30 AM' | '11:30 AM',
+ *       'Barbell Club'?: '12:30 PM',
+ *     },
+ *     SUNDAY?: {
+ *       Bodybuilding?: '12:00 PM',
+ *     },
+ *   },
  * }[]} settings
  */
 

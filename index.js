@@ -102,9 +102,15 @@ const signUp = async (settings) => {
     })
     let requested = false;
     while (true) {
-      await Promise.all(Object.entries(schedule).filter(([day, classes]) => day.localeCompare(weekday, [], {
-        sensitivity: 'base'
-      }) != 0).map(async ([day, classes]) => {
+      await Promise.all(Object.entries(schedule).filter(([day, classes]) => {
+        const equal = day.localeCompare(weekday, [], {
+          sensitivity: 'base'
+        }) == 0
+        if (!equal) {
+          console.log(`[${username}] skipping ${day} != ${weekday}`)
+        }
+        return equal
+      }).map(async ([day, classes]) => {
         await Promise.all(Object.entries(classes).sort(([p1, t1], [p2, t2]) => {
           const precedence = [
             'WOD',
